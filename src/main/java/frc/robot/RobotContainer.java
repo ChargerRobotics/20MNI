@@ -29,7 +29,7 @@ public class RobotContainer {
     );
     this.driveTrainSubsystem = new DriveTrainSubsystem(driveTrain, () -> {
       double magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
-      double angleRadians = Math.atan(controller.getLeftX() / controller.getLeftY());
+      double angleRadians = getAngle(controller.getLeftX(), controller.getLeftY());
       return OmniSpeeds.fromRelative(magnitude * 0.75, angleRadians, controller.getRightX() * 0.25, gyro.getAngle());
     });
     gyro.calibrate();
@@ -43,8 +43,10 @@ public class RobotContainer {
 
   public void periodic() {
     double magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
-    double angleRadians = controller.getLeftY() == 0 ? 90 : Math.atan(controller.getLeftX() / controller.getLeftY());
+    double angleRadians = getAngle(controller.getLeftX(), controller.getLeftY());
     SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
+    SmartDashboard.putNumber("Controller x", controller.getLeftX());
+    SmartDashboard.putNumber("Controller y", controller.getLeftY());
     SmartDashboard.putNumber("Controller mag", magnitude);
     SmartDashboard.putNumber("Controller angle", Math.toDegrees(angleRadians));
   }
@@ -54,4 +56,20 @@ public class RobotContainer {
   }
 
   private void configureBindings() {}
+
+  private static double getAngle(double x, double y) {
+    if (y == 0 && x == 0) return 0;
+    if (y == 0) {
+      if (x > 0) return 90;
+      else if (x < 0) return 270;
+    }
+    if (x == 0) {
+      if (y > 0) return 0;
+      else if (y < 0) return 180;
+    }
+    double angle = Math.atan(x / -y);
+    if (y > 0) return angle + 180;
+    if (x < 0) return angle + 360;
+    return angle;
+  }
 }
