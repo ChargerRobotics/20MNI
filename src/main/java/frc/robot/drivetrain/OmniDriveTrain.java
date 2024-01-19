@@ -22,9 +22,9 @@ public class OmniDriveTrain {
   public void drive(OmniSpeeds speeds) {
     double forwardPower = speeds.getForwardPower();
     double sidewaysPower = speeds.getSidewaysPower();
-    left.set(forwardPower);
-    right.set(-forwardPower);
-    top.set(sidewaysPower);
-    bottom.set(-sidewaysPower);
+    left.set(speeds.getLeftPower());
+    right.set(-speeds.getRightPower());
+    top.set(speeds.getTopPower());
+    bottom.set(-speeds.getBottomPower());
   }
 }
