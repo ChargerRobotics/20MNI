@@ -26,7 +26,7 @@ public class OmniSpeeds {
   /**
    * @param magnitude Joystick magnitude
    * @param angleRadians The angle of the joystick
-   * @param rotatePower The rotate power. This plus the max joystick magnitude should not exceed 1.
+   * @param rotatePower The rotation power. This plus the max joystick magnitude should not exceed 1.
    * @param heading The robot heading in radians
    */
   public static OmniSpeeds fromRelative(double magnitude, double angleRadians, double rotatePower, double heading) {
@@ -34,7 +34,7 @@ public class OmniSpeeds {
     double forwardPower = Math.cos(actualRotation) * magnitude;
     double sidewaysPower = Math.sin(actualRotation) * magnitude;
 
-    return new OmniSpeeds(forwardPower + rotatePower, sidewaysPower + rotatePower, forwardPower - rotatePower, sidewaysPower - rotatePower););
+    return new OmniSpeeds(forwardPower + rotatePower, sidewaysPower + rotatePower, forwardPower - rotatePower, sidewaysPower - rotatePower);
   }
 
   public double getLeftPower() {
