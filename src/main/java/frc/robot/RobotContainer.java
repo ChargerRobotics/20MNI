@@ -60,16 +60,16 @@ public class RobotContainer {
   private static double getAngle(double x, double y) {
     if (y == 0 && x == 0) return 0;
     if (y == 0) {
-      if (x > 0) return 90;
-      else if (x < 0) return 270;
+      if (x > 0) return Math.PI / 2; // 90 deg
+      else if (x < 0) return 3 * Math.PI / 2; // 270 deg
     }
     if (x == 0) {
       if (y > 0) return 0;
-      else if (y < 0) return 180;
+      else if (y < 0) return Math.PI; // 180 deg
     }
     double angle = Math.atan(x / y);
-    if (y < 0) return angle + 180;
-    if (x < 0) return angle + 360;
+    if (y < 0) return angle + Math.PI;
+    if (x < 0) return angle + Math.PI * 2;
     return angle;
   }
 }
