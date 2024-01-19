@@ -5,18 +5,22 @@
 package frc.robot.drivetrain;
 
 public class OmniSpeeds {
-  private final double forwardPower;
-  private final double sidewaysPower;
+  private final double leftPower;
+  private final double topPower;
+  private final double rightPower;
+  private final double bottomPower;
 
-  /**
-   * @param forwardPower The power power
-   * @param sidewaysPower The sidepways power
-   * @param rotatePower The rotate power. This plus either the max forward or sideways power should not exceed 1.
-   * @param heading The robot heading in radians
-   */
   public OmniSpeeds(double forwardPower, double sidewaysPower) {
-    this.forwardPower = forwardPower;
-    this.sidewaysPower = sidewaysPower;
+    this.leftPower = forwardPower;
+    this.rightPower = forwardPower;
+    this.topPower = sidewaysPower;
+    this.bottomPower = sidewaysPower;
+  }
+  public OmniSpeeds(double leftPower, double topPower, double rightPower, double bottomPower) {
+    this.leftPower = leftPower;
+    this.topPower = topPower;
+    this.rightPower = rightPower;
+    this.bottomPower = bottomPower;
   }
 
   /**
@@ -27,17 +31,25 @@ public class OmniSpeeds {
    */
   public static OmniSpeeds fromRelative(double magnitude, double angleRadians, double rotatePower, double heading) {
     double actualRotation = angleRadians - heading;
-    double forwardPower = Math.cos(actualRotation) * magnitude + rotatePower;
-    double sidewaysPower = Math.sin(actualRotation) * magnitude + rotatePower;
+    double forwardPower = Math.cos(actualRotation) * magnitude;
+    double sidewaysPower = Math.sin(actualRotation) * magnitude;
 
-    return new OmniSpeeds(forwardPower, sidewaysPower);
+    return new OmniSpeeds(forwardPower + rotatePower, sidewaysPower + rotatePower, forwardPower - rotatePower, sidewaysPower - rotatePower););
   }
 
-  public double getForwardPower() {
-    return forwardPower;
+  public double getLeftPower() {
+    return leftPower;
   }
 
-  public double getSidewaysPower() {
-    return sidewaysPower;
+  public double getTopPower() {
+    return topPower;
+  }
+
+  public double getRightPower() {
+    return rightPower;
+  }
+
+  public double getBottomPower() {
+    return bottomPower;
   }
 }
