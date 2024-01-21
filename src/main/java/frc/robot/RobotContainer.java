@@ -29,6 +29,7 @@ public class RobotContainer {
     );
     this.driveTrainSubsystem = new DriveTrainSubsystem(driveTrain, () -> {
       double magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
+      magnitude = magnitude < 0 ? Math.max(magnitude, -1) : Math.min(magnitude, 1);
       double angleRadians = getAngle(controller.getLeftX(), -controller.getLeftY());
       return OmniSpeeds.fromRelative(magnitude * 0.75, angleRadians, controller.getRightX() * 0.25, Math.toRadians(gyro.getAngle()));
     });
