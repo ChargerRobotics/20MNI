@@ -1,9 +1,11 @@
 package frc.robot.drivetrain;
 
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 
-public class OmniDriveTrain {
+public class OmniDriveTrain implements Sendable {
   private final MotorControllerGroup left;
   private final MotorControllerGroup top;
   private final MotorControllerGroup right;
@@ -27,5 +29,15 @@ public class OmniDriveTrain {
     right.set(-speeds.rightPower());
     top.set(speeds.topPower());
     bottom.set(-speeds.bottomPower());
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.setSmartDashboardType("OMNI_DRIVETRAIN");
+    builder.addDoubleProperty("heading", () -> heading, null);
+    builder.addDoubleProperty("leftPower", left::get, null);
+    builder.addDoubleProperty("topPower", top::get, null);
+    builder.addDoubleProperty("rightPower", () -> -right.get(), null);
+    builder.addDoubleProperty("bottomPower", () -> -bottom.get(), null);
   }
 }

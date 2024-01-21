@@ -6,9 +6,8 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.drivetrain.OmniDriveTrain;
@@ -18,9 +17,9 @@ import frc.robot.subsystems.DriveTrainSubsystem;
 public class RobotContainer {
   private final DriveTrainSubsystem driveTrainSubsystem;
   private final XboxController controller = new XboxController(0);
-  private final Gyro gyro = new ADXRS450_Gyro();
+  private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 
-  public RobotContainer() {
+  public RobotContainer(ShuffleboardTab robotTab, ShuffleboardTab debugTab) {
     OmniDriveTrain driveTrain = new OmniDriveTrain(
       new PWMSparkMax(Ports.LEFT_MOTOR_CHANNEL),
       new PWMSparkMax(Ports.TOP_MOTOR_CHANNEL),
@@ -36,20 +35,12 @@ public class RobotContainer {
     gyro.calibrate();
 
     configureBindings();
+
+    addDebugData(debugTab);
   }
 
   public void reset() {
     gyro.reset();
-  }
-
-  public void periodic() {
-    double magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
-    double angleRadians = getAngle(controller.getLeftX(), -controller.getLeftY());
-    SmartDashboard.putNumber("Gyro Angle", gyro.getAngle());
-    SmartDashboard.putNumber("Controller x", controller.getLeftX());
-    SmartDashboard.putNumber("Controller y", controller.getLeftY());
-    SmartDashboard.putNumber("Controller mag", magnitude);
-    SmartDashboard.putNumber("Controller angle", Math.toDegrees(angleRadians));
   }
 
   public Command getAutonomousCommand() {
@@ -57,6 +48,21 @@ public class RobotContainer {
   }
 
   private void configureBindings() {}
+
+  private void addDebugData(ShuffleboardTab tab) {
+    tab.add("drivetrain", driveTrainSubsystem.getDriveTrain())
+            .withPosition(3, 2)
+            .withSize(4, 3);
+    tab.add("gyro", gyro)
+            .withPosition(5, 0)
+            .withSize(2, 2);
+    tab.addDouble("controller mag", () -> Math.hypot(controller.getLeftX(), controller.getLeftY()))
+            .withPosition(3, 1)
+            .withSize(2, 1);
+    tab.addDouble("controller angle", () -> Math.toDegrees(RobotContainer.getAngle(controller.getLeftX(), -controller.getLeftY())))
+            .withPosition(3, 0)
+            .withSize(2, 1);
+  }
 
   private static double getAngle(double x, double y) {
     if (y == 0 && x == 0) return 0;
