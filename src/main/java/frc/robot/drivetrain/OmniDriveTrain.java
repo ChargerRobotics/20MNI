@@ -9,6 +9,8 @@ public class OmniDriveTrain {
   private final MotorControllerGroup right;
   private final MotorControllerGroup bottom;
 
+  private double heading;
+
   public OmniDriveTrain(MotorController left, MotorController top, MotorController right, MotorController bottom) {
     this(new MotorControllerGroup(left), new MotorControllerGroup(top), new MotorControllerGroup(right), new MotorControllerGroup(bottom));
   }
@@ -20,9 +22,10 @@ public class OmniDriveTrain {
   }
 
   public void drive(OmniSpeeds speeds) {
-    left.set(speeds.getLeftPower());
-    right.set(-speeds.getRightPower());
-    top.set(speeds.getTopPower());
-    bottom.set(-speeds.getBottomPower());
+    heading = speeds.heading();
+    left.set(speeds.leftPower());
+    right.set(-speeds.rightPower());
+    top.set(speeds.topPower());
+    bottom.set(-speeds.bottomPower());
   }
 }
