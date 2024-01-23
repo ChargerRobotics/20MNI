@@ -3,20 +3,16 @@ package frc.robot.drivetrain;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 
 public class OmniDriveTrain implements Sendable {
-  private final MotorControllerGroup left;
-  private final MotorControllerGroup top;
-  private final MotorControllerGroup right;
-  private final MotorControllerGroup bottom;
+  private final MotorController left;
+  private final MotorController top;
+  private final MotorController right;
+  private final MotorController bottom;
 
   private double heading;
 
   public OmniDriveTrain(MotorController left, MotorController top, MotorController right, MotorController bottom) {
-    this(new MotorControllerGroup(left), new MotorControllerGroup(top), new MotorControllerGroup(right), new MotorControllerGroup(bottom));
-  }
-  public OmniDriveTrain(MotorControllerGroup left, MotorControllerGroup top, MotorControllerGroup right, MotorControllerGroup bottom) {
     this.left = left;
     this.top = top;
     this.right = right;
