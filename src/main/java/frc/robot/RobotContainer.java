@@ -98,9 +98,11 @@ public class RobotContainer {
     tab.add("gyro", gyro)
             .withPosition(5, 0)
             .withSize(2, 2);
+
     tab.addDouble("controller mag", () -> Math.hypot(controller.getLeftX(), controller.getLeftY()))
             .withPosition(3, 1)
             .withSize(2, 1);
+
     tab.addDouble("controller angle", () -> Math.toDegrees(RobotContainer.getAngle(controller.getLeftX(), -controller.getLeftY())))
             .withPosition(3, 0)
             .withSize(2, 1);
