@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.datasiqn.robotutils.controlcurve.ControlCurve;
+import com.datasiqn.robotutils.controlcurve.ControlCurves;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
@@ -24,6 +26,11 @@ public class RobotContainer {
   private final XboxController controller = new XboxController(0);
   private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 
+  private final ControlCurve driveSpeedCurve = ControlCurves.power(3)
+          .withDeadZone(0.05)
+          .withPowerMultiplier(0.5)
+          .build();
+
   private GenericEntry fieldCentricEntry;
 
   public RobotContainer(ShuffleboardTab robotTab, ShuffleboardTab debugTab) {
@@ -35,7 +42,7 @@ public class RobotContainer {
     );
     this.driveTrainSubsystem = new DriveTrainSubsystem(driveTrain, () -> {
       double magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
-      magnitude = MathUtil.clamp(magnitude, -1, 1) * 0.75;
+      magnitude = driveSpeedCurve.get(MathUtil.clamp(magnitude, -1, 1));
 
       double angleRadians = getAngle(controller.getLeftX(), -controller.getLeftY());
 
