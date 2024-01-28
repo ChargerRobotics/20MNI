@@ -4,9 +4,14 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -19,6 +24,8 @@ public class RobotContainer {
   private final XboxController controller = new XboxController(0);
   private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 
+  private GenericEntry fieldCentricEntry;
+
   public RobotContainer(ShuffleboardTab robotTab, ShuffleboardTab debugTab) {
     OmniDriveTrain driveTrain = new OmniDriveTrain(
       new PWMSparkMax(Ports.LEFT_MOTOR_CHANNEL),
@@ -28,14 +35,24 @@ public class RobotContainer {
     );
     this.driveTrainSubsystem = new DriveTrainSubsystem(driveTrain, () -> {
       double magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
-      magnitude = magnitude < 0 ? Math.max(magnitude, -1) : Math.min(magnitude, 1);
+      magnitude = MathUtil.clamp(magnitude, -1, 1) * 0.75;
+
       double angleRadians = getAngle(controller.getLeftX(), -controller.getLeftY());
-      return OmniSpeeds.fromRelative(magnitude * 0.75, angleRadians, controller.getRightX() * 0.25, Math.toRadians(gyro.getAngle()));
+
+      double rotatePower = controller.getRightX() * 0.25;
+      double heading = Math.toRadians(gyro.getAngle());
+
+      if (fieldCentricEntry.getBoolean(true)) {
+        return OmniSpeeds.fromRelative(magnitude, angleRadians, rotatePower, heading);
+      } else {
+        return OmniSpeeds.from(magnitude, angleRadians, rotatePower, heading);
+      }
     });
     gyro.calibrate();
 
     configureBindings();
 
+    addRobotData(robotTab);
     addDebugData(debugTab);
   }
 
@@ -49,10 +66,28 @@ public class RobotContainer {
 
   private void configureBindings() {}
 
-  private void addDebugData(ShuffleboardTab tab) {
+  private void addRobotData(ShuffleboardTab tab) {
     tab.add("drivetrain", driveTrainSubsystem.getDriveTrain())
-            .withPosition(3, 2)
+            .withPosition(3, 1)
             .withSize(4, 3);
+
+    fieldCentricEntry = tab.add("field centric", true)
+            .withWidget(BuiltInWidgets.kToggleSwitch)
+            .withPosition(2, 1)
+            .withSize(1, 1)
+            .getEntry();
+
+    Button resetGyroCommand = new Button("reset", gyro::reset);
+    Button calibrateGyroCommand = new Button("calibrate", gyro::calibrate);
+
+    ShuffleboardLayout gyroList = tab.getLayout("Gyro", BuiltInLayouts.kList)
+            .withPosition(7, 1)
+            .withSize(2, 3);
+    gyroList.add("reset", resetGyroCommand);
+    gyroList.add("calibrate", calibrateGyroCommand);
+  }
+
+  private void addDebugData(ShuffleboardTab tab) {
     tab.add("gyro", gyro)
             .withPosition(5, 0)
             .withSize(2, 2);
