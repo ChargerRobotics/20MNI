@@ -4,34 +4,41 @@
 
 package frc.robot;
 
-import com.datasiqn.robotutils.controlcurve.ControlCurve;
-import com.datasiqn.robotutils.controlcurve.ControlCurves;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.drivetrain.DriveSpeedControlCurve;
 import frc.robot.drivetrain.OmniDriveTrain;
 import frc.robot.drivetrain.OmniSpeeds;
 import frc.robot.subsystems.DriveTrainSubsystem;
 
+import java.util.Map;
+
 public class RobotContainer {
   private final DriveTrainSubsystem driveTrainSubsystem;
-  private final XboxController controller = new XboxController(0);
+  private final CommandXboxController controller = new CommandXboxController(0);
   private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
+  private final DriveSpeedControlCurve driveSpeedCurve = new DriveSpeedControlCurve(0.05, 0);
 
-  private final ControlCurve driveSpeedCurve = ControlCurves.power(3)
-          .withDeadZone(0.05)
-          .withPowerMultiplier(0.5)
-          .build();
+  private final SendableChooser<DriveSpeedControlCurve.SpeedType> speedTypeChooser = new SendableChooser<>();
+  {
+    speedTypeChooser.setDefaultOption(DriveSpeedControlCurve.DEFAULT_SPEED_TYPE.toString(), DriveSpeedControlCurve.DEFAULT_SPEED_TYPE);
+    speedTypeChooser.addOption("Linear", DriveSpeedControlCurve.SpeedType.LINEAR);
+    speedTypeChooser.onChange(driveSpeedCurve::setSpeedType);
+  }
 
+  private GenericEntry maxSpeedEntry;
   private GenericEntry fieldCentricEntry;
+  private GenericEntry dPadEntry;
 
   public RobotContainer(ShuffleboardTab robotTab, ShuffleboardTab debugTab) {
     OmniDriveTrain driveTrain = new OmniDriveTrain(
@@ -41,10 +48,21 @@ public class RobotContainer {
       new PWMSparkMax(Ports.BOTTOM_MOTOR_CHANNEL)
     );
     this.driveTrainSubsystem = new DriveTrainSubsystem(driveTrain, () -> {
-      double magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
-      magnitude = driveSpeedCurve.get(MathUtil.clamp(magnitude, -1, 1));
+      driveSpeedCurve.setMaxSpeed(maxSpeedEntry.getDouble(DriveSpeedControlCurve.DEFAULT_MAX_SPEED));
 
-      double angleRadians = getAngle(controller.getLeftX(), -controller.getLeftY());
+      double magnitude;
+      double angleRadians;
+
+      if (!dPadEntry.getBoolean(false)) {
+        magnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
+        magnitude = driveSpeedCurve.getControlCurve().get(MathUtil.clamp(magnitude, -1, 1));
+
+        angleRadians = getAngle(controller.getLeftX(), -controller.getLeftY());
+      } else {
+        int pov = controller.getHID().getPOV();
+        magnitude = pov == -1 ? 0 : 1;
+        angleRadians = Math.toRadians(pov);
+      }
 
       double rotatePower = controller.getRightX() * 0.25;
       double heading = Math.toRadians(gyro.getAngle());
@@ -78,9 +96,26 @@ public class RobotContainer {
             .withPosition(3, 1)
             .withSize(4, 3);
 
+    tab.add("Speed Type", speedTypeChooser)
+            .withPosition(2, 0)
+            .withSize(2, 1);
+
+    maxSpeedEntry = tab.add("Max Speed", DriveSpeedControlCurve.DEFAULT_MAX_SPEED)
+            .withWidget(BuiltInWidgets.kNumberSlider)
+            .withProperties(Map.of("Min", 0, "Max", 1))
+            .withPosition(4, 0)
+            .withSize(2, 1)
+            .getEntry();
+
     fieldCentricEntry = tab.add("field centric", true)
             .withWidget(BuiltInWidgets.kToggleSwitch)
             .withPosition(2, 1)
+            .withSize(1, 1)
+            .getEntry();
+
+    dPadEntry = tab.add("use dpad", false)
+            .withWidget(BuiltInWidgets.kToggleSwitch)
+            .withPosition(2, 2)
             .withSize(1, 1)
             .getEntry();
 
