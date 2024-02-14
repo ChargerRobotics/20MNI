@@ -1,0 +1,13 @@
+{
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/debug/arm pid": "PIDController",
+      "/Shuffleboard/debug/gyro": "Gyro",
+      "/Shuffleboard/robot/Speed Type": "String Chooser"
+    }
+  },
+  "NetworkTables Info": {
+    "visible": true
+  }
+}

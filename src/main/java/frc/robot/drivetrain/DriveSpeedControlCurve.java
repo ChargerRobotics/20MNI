@@ -3,6 +3,9 @@ package frc.robot.drivetrain;
 import com.datasiqn.robotutils.controlcurve.ControlCurve;
 import com.datasiqn.robotutils.controlcurve.ControlCurves;
 
+/**
+ * Represents different control curves that are used to control the drivetrain
+ */
 public class DriveSpeedControlCurve {
   public static final SpeedType DEFAULT_SPEED_TYPE = SpeedType.CUBIC;
   public static final double DEFAULT_MAX_SPEED = 0.5;
@@ -14,6 +17,11 @@ public class DriveSpeedControlCurve {
   private SpeedType speedType = DEFAULT_SPEED_TYPE;
   private double maxSpeed = DEFAULT_MAX_SPEED;
 
+  /**
+   * Creates a new {@code DriveSpeedControlCurve} with a deadzone and a min power
+   * @param deadZone The deadzone to use
+   * @param minPower The minpower to use
+   */
   public DriveSpeedControlCurve(double deadZone, double minPower) {
     this.deadZone = deadZone;
     this.minPower = minPower;
@@ -60,10 +68,17 @@ public class DriveSpeedControlCurve {
     };
   }
 
+  /**
+   * Gets the control curve of the drive train
+   * @return
+   */
   public ControlCurve getControlCurve() {
     return controlCurve;
   }
 
+  /**
+   * Represents different speed types on the drivetrain. This contains linear and cubic speeds.
+   */
   public enum SpeedType {
     CUBIC("Cubic"),
     LINEAR("Linear"),
