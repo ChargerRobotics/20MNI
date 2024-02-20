@@ -40,7 +40,7 @@ public class RobotContainer {
 
   private final CommandXboxController controller = new CommandXboxController(0);
   private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
-  private final DriveSpeedControlCurve driveSpeedCurve = new DriveSpeedControlCurve(0.025, 0.018);
+  private final DriveSpeedControlCurve driveSpeedCurve = new DriveSpeedControlCurve(0.02, 0.018);
 
   private final PIDController centerPidController = new PIDController(0.01, 0.015, 0);
   {
@@ -125,7 +125,7 @@ public class RobotContainer {
         angleRadians = Math.toRadians(pov);
       }
 
-      double rotatePower = controller.getRightX() * 0.25;
+      double rotatePower = controller.getRightX() * 0.4;
       double heading = Math.toRadians(gyro.getAngle());
 
       if (fieldCentricEntry.getBoolean(true)) {
@@ -145,13 +145,11 @@ public class RobotContainer {
     CANSparkMax leftArmController = new CANSparkMax(Ports.LEFT_ARM_MOTOR_ID, MotorType.kBrushless);
     CANSparkMax rightArmController = new CANSparkMax(Ports.RIGHT_ARM_MOTOR_ID, MotorType.kBrushless);
 
-    rightArmController.follow(leftArmController, true);
-
-    PIDController pidController = new PIDController(0, 0, 0);
+    PIDController pidController = new PIDController(0.2, 0.05, 0);
 
     pidController.setIntegratorRange(-0.5, 0.5);
 
-    return new ArmSubsystem(leftArmController, pidController, () -> (controller.getLeftTriggerAxis() - controller.getRightTriggerAxis()) * 0.1);
+    return new ArmSubsystem(leftArmController, rightArmController, pidController, () -> (controller.getLeftTriggerAxis() - controller.getRightTriggerAxis()) * 0.15);
   }
 
   /**
@@ -159,8 +157,8 @@ public class RobotContainer {
    * @return The newly created {@link OuttakeSubsystem}
    */
   private OuttakeSubsystem createOuttakeSubsystem() {
-    PWMVictorSPX leftMotorController = new PWMVictorSPX(Ports.LEFT_OUTTAKE_MOTOR_CHANNEL);
-    PWMVictorSPX rightMotorController = new PWMVictorSPX(Ports.RIGHT_OUTTAKE_MOTOR_CHANNEL);
+    PWMSparkMax leftMotorController = new PWMSparkMax(Ports.LEFT_OUTTAKE_MOTOR_CHANNEL);
+    PWMSparkMax rightMotorController = new PWMSparkMax(Ports.RIGHT_OUTTAKE_MOTOR_CHANNEL);
 
     leftMotorController.addFollower(rightMotorController);
 
@@ -177,13 +175,14 @@ public class RobotContainer {
 
   private void configureBindings() {
     controller.leftBumper()
-          .whileTrue(intakeSubsystem.intakeCommand(-0.75));
+          .whileTrue(intakeSubsystem.intakeCommand(-1))
+          .onFalse(intakeSubsystem.intakeCommand(0.5).withTimeout(0.1));
 
     controller.a()
-          .whileTrue(intakeSubsystem.intakeCommand(0.3));
+          .whileTrue(intakeSubsystem.intakeCommand(0.5));
 
     controller.rightBumper()
-          .whileTrue(outtakeSubsystem.outtakeCommand(-0.9));
+          .whileTrue(outtakeSubsystem.outtakeCommand(-0.5));
 
     controller.b()
           .onTrue(new CenterAprilTagCommand(this, centerPidController, 2));
@@ -243,6 +242,8 @@ public class RobotContainer {
     tab.addDouble("arm motor power", armSubsystem.getMotorController()::get)
             .withPosition(3, 1)
             .withSize(2, 1);
+
+    tab.addDouble("arm motor power 1", armSubsystem.getOtherMotorController()::get);
 
     tab.addDouble("intake motor power", intakeSubsystem.getMotorController()::get)
             .withPosition(3, 0)
