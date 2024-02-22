@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -35,8 +36,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 public class RobotContainer {
   private final DriveTrainSubsystem driveTrainSubsystem;
   private final ArmSubsystem armSubsystem;
-  private final IntakeSubsystem intakeSubsystem;
-  private final OuttakeSubsystem outtakeSubsystem;
+  private final Shooter shooter;
 
   private final CommandXboxController controller = new CommandXboxController(0);
   private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
@@ -67,8 +67,7 @@ public class RobotContainer {
   public RobotContainer(ShuffleboardTab robotTab, ShuffleboardTab debugTab) {
     this.driveTrainSubsystem = createDriveTrainSubsystem();
     this.armSubsystem = createArmSubsystem();
-    this.intakeSubsystem = createIntakeSubsystem();
-    this.outtakeSubsystem = createOuttakeSubsystem();
+    this.shooter = new Shooter(createIntakeSubsystem(), createOuttakeSubsystem());
 
     gyro.calibrate();
 
@@ -76,6 +75,7 @@ public class RobotContainer {
 
     addRobotData(robotTab);
     addDebugData(debugTab);
+    shooter.addShuffleboardData(Shuffleboard.getTab("shooter"));
   }
 
   public void reset() {
@@ -175,14 +175,11 @@ public class RobotContainer {
 
   private void configureBindings() {
     controller.leftBumper()
-          .whileTrue(intakeSubsystem.intakeCommand(-1))
-          .onFalse(intakeSubsystem.intakeCommand(0.5).withTimeout(0.1));
-
-    controller.a()
-          .whileTrue(intakeSubsystem.intakeCommand(0.5));
+          .whileTrue(shooter.intakeCommand(-1))
+          .onFalse(shooter.intakeCommand(0.5).withTimeout(0.1));
 
     controller.rightBumper()
-          .whileTrue(outtakeSubsystem.outtakeCommand(-0.5));
+          .onTrue(shooter.outtakeNoteCommand());
 
     controller.b()
           .onTrue(new CenterAprilTagCommand(this, centerPidController, 2));
@@ -235,18 +232,8 @@ public class RobotContainer {
    * @param tab The shuffleobard tab to add the data to
    */
   private void addDebugData(ShuffleboardTab tab) {
-    tab.add("gyro", gyro)
-            .withPosition(5, 0)
-            .withSize(2, 2);
-
     tab.addDouble("arm motor power", armSubsystem.getMotorController()::get)
             .withPosition(3, 1)
-            .withSize(2, 1);
-
-    tab.addDouble("arm motor power 1", armSubsystem.getOtherMotorController()::get);
-
-    tab.addDouble("intake motor power", intakeSubsystem.getMotorController()::get)
-            .withPosition(3, 0)
             .withSize(2, 1);
 
     tab.add("arm encoder", armSubsystem.getMotorController().getEncoder().getPosition())
@@ -260,8 +247,6 @@ public class RobotContainer {
             .withProperties(Map.of("visible time", 2))
             .withPosition(2, 2)
             .withSize(3, 3);
-
-    tab.add("center pid", centerPidController);
   }
 
   /**
