@@ -34,8 +34,8 @@ public class ArmSubsystem extends SubsystemBase {
     this.pidController = pidController;
 
     setDefaultCommand(run(() -> {
-      // double speed = armPositionSupplier.getAsDouble();
       setPoint += armPositionSupplier.getAsDouble();
+      setPoint = MathUtil.clamp(setPoint, Double.NEGATIVE_INFINITY, 0);
 
       double speed = MathUtil.clamp(pidController.calculate(motorController.getEncoder().getPosition(), setPoint), -1, 1);
       motorController.set(speed);
@@ -54,10 +54,6 @@ public class ArmSubsystem extends SubsystemBase {
 
   public CANSparkMax getMotorController() {
       return motorController;
-  }
-
-  public CANSparkMax getOtherMotorController() {
-      return otherMotorController;
   }
 
   public PIDController getPidController() {
