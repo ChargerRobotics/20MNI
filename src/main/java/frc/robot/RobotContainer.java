@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.CenterAprilTagCommand;
 import frc.robot.drivetrain.DriveSpeedControlCurve;
 import frc.robot.drivetrain.OmniDriveTrain;
 import frc.robot.drivetrain.OmniSpeeds;
@@ -40,7 +39,7 @@ public class RobotContainer {
 
   private final CommandXboxController controller = new CommandXboxController(0);
   private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
-  private final DriveSpeedControlCurve driveSpeedCurve = new DriveSpeedControlCurve(0.02, 0.018);
+  private final DriveSpeedControlCurve driveSpeedCurve = new DriveSpeedControlCurve(0.05, 0.025);
 
   private final PIDController centerPidController = new PIDController(0.01, 0.015, 0);
   {
@@ -181,8 +180,14 @@ public class RobotContainer {
     controller.rightBumper()
           .onTrue(shooter.outtakeNoteCommand());
 
+    controller.a()
+          .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(-6.5), armSubsystem));
+
     controller.b()
-          .onTrue(new CenterAprilTagCommand(this, centerPidController, 2));
+          .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(0.5), armSubsystem));
+
+    // controller.b()
+    //       .onTrue(new CenterAprilTagCommand(this, centerPidController, 2));
   }
 
   /**

@@ -52,6 +52,10 @@ public class ArmSubsystem extends SubsystemBase {
     setPoint = 0;
   }
 
+  public void setSetPoint(double setPoint) {
+    this.setPoint = setPoint;
+  }
+
   public CANSparkMax getMotorController() {
       return motorController;
   }
