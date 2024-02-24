@@ -22,10 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.drivetrain.DriveSpeedControlCurve;
 import frc.robot.drivetrain.OmniDriveTrain;
 import frc.robot.drivetrain.OmniSpeeds;
-import frc.robot.subsystems.ArmSubsystem;
-import frc.robot.subsystems.DriveTrainSubsystem;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.OuttakeSubsystem;
+import frc.robot.subsystems.*;
 
 import java.util.Map;
 
@@ -36,6 +33,7 @@ public class RobotContainer {
   private final DriveTrainSubsystem driveTrainSubsystem;
   private final ArmSubsystem armSubsystem;
   private final Shooter shooter;
+  private final ClimbSubsystem climbSubsystem;
 
   private final CommandXboxController controller = new CommandXboxController(0);
   private final ADXRS450_Gyro gyro = new ADXRS450_Gyro();
@@ -59,7 +57,7 @@ public class RobotContainer {
   private GenericEntry dPadEntry;
 
   /**
-   * Creats a new {@code RobotContainer} with the robot tab of {@code robotTab} and a debug tab of {@code debugTab}
+   * Creates a new {@code RobotContainer} with the robot tab of {@code robotTab} and a debug tab of {@code debugTab}
    * @param robotTab The shuffleboard tab to put robot data into
    * @param debugTab The shuffleboard tab to put debug data into
    */
@@ -67,6 +65,7 @@ public class RobotContainer {
     this.driveTrainSubsystem = createDriveTrainSubsystem();
     this.armSubsystem = createArmSubsystem();
     this.shooter = new Shooter(createIntakeSubsystem(), createOuttakeSubsystem());
+    this.climbSubsystem = createClimbSubsystem();
 
     gyro.calibrate();
 
@@ -102,10 +101,10 @@ public class RobotContainer {
    */
   private DriveTrainSubsystem createDriveTrainSubsystem() {
     OmniDriveTrain driveTrain = new OmniDriveTrain(
-      new PWMSparkMax(Ports.LEFT_MOTOR_CHANNEL),
-      new PWMSparkMax(Ports.TOP_MOTOR_CHANNEL),
-      new PWMSparkMax(Ports.RIGHT_MOTOR_CHANNEL),
-      new PWMSparkMax(Ports.BOTTOM_MOTOR_CHANNEL)
+            new PWMSparkMax(Ports.LEFT_MOTOR_CHANNEL),
+            new PWMSparkMax(Ports.TOP_MOTOR_CHANNEL),
+            new PWMSparkMax(Ports.RIGHT_MOTOR_CHANNEL),
+            new PWMSparkMax(Ports.BOTTOM_MOTOR_CHANNEL)
     );
     return new DriveTrainSubsystem(driveTrain, () -> {
       driveSpeedCurve.setMaxSpeed(maxSpeedEntry.getDouble(DriveSpeedControlCurve.DEFAULT_MAX_SPEED));
@@ -172,19 +171,35 @@ public class RobotContainer {
     return new IntakeSubsystem(new PWMVictorSPX(Ports.INTAKE_MOTOR_CHANNEL));
   }
 
+  private ClimbSubsystem createClimbSubsystem() {
+    PWMVictorSPX leftMotorController = new PWMVictorSPX(Ports.LEFT_CLIMB_MOTOR_CHANNEL);
+    PWMVictorSPX rightMotorController = new PWMVictorSPX(Ports.RIGHT_CLIMB_MOTOR_CHANNEL);
+    rightMotorController.setInverted(true);
+
+    leftMotorController.addFollower(rightMotorController);
+
+    return new ClimbSubsystem(leftMotorController);
+  }
+
   private void configureBindings() {
     controller.leftBumper()
-          .whileTrue(shooter.intakeCommand(-1))
-          .onFalse(shooter.intakeCommand(0.5).withTimeout(0.1));
+            .whileTrue(shooter.intakeCommand(-1))
+            .onFalse(shooter.intakeCommand(0.5).withTimeout(0.1));
 
     controller.rightBumper()
-          .onTrue(shooter.outtakeNoteCommand());
+            .onTrue(shooter.outtakeNoteCommand());
 
     controller.a()
-          .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(-6.5), armSubsystem));
+            .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(-6.5), armSubsystem));
 
     controller.b()
-          .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(0.5), armSubsystem));
+            .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(0.5), armSubsystem));
+
+    controller.y()
+            .whileTrue(climbSubsystem.climbCommand(-0.9));
+
+    controller.x()
+            .whileTrue(climbSubsystem.climbCommand(0.5));
 
     // controller.b()
     //       .onTrue(new CenterAprilTagCommand(this, centerPidController, 2));
@@ -234,7 +249,7 @@ public class RobotContainer {
 
   /**
    * Adds debug data onto shuffleboard tab {@code tab}
-   * @param tab The shuffleobard tab to add the data to
+   * @param tab The shuffleboard tab to add the data to
    */
   private void addDebugData(ShuffleboardTab tab) {
     tab.addDouble("arm motor power", armSubsystem.getMotorController()::get)
@@ -247,7 +262,7 @@ public class RobotContainer {
     tab.add("arm pid", armSubsystem.getPidController())
             .withPosition(2, 0);
 
-    tab.addDoubleArray("arm pid graph", () -> new double[] { armSubsystem.getPidController().getSetpoint(), armSubsystem.getMotorController().getEncoder().getPosition() })
+    tab.addDoubleArray("arm pid graph", () -> new double[]{armSubsystem.getPidController().getSetpoint(), armSubsystem.getMotorController().getEncoder().getPosition()})
             .withWidget(BuiltInWidgets.kGraph)
             .withProperties(Map.of("visible time", 2))
             .withPosition(2, 2)

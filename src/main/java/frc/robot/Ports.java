@@ -20,4 +20,7 @@ public final class Ports {
 
   public static final int LEFT_OUTTAKE_MOTOR_CHANNEL = 5;   // O1
   public static final int RIGHT_OUTTAKE_MOTOR_CHANNEL = 6;  // O2
+
+  public static final int LEFT_CLIMB_MOTOR_CHANNEL = 7;     // C1
+  public static final int RIGHT_CLIMB_MOTOR_CHANNEL = 8;    // C2
 }
