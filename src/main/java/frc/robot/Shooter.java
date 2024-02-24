@@ -24,7 +24,7 @@ public class Shooter {
   public Command outtakeNoteCommand() {
     return Commands.deadline(
       Commands.waitSeconds(1).andThen(intakeCommand(-1).withTimeout(0.5)),
-      outtakeCommand(0.7)
+      outtakeCommand(-0.7)
     );
   }
 
