@@ -61,7 +61,7 @@ public class Shooter {
           .withSize(2, 3)
           .withPosition(4, 0);
 
-    outtakeList.addDouble("outtake speed", () -> outtakeSubsystem.getMotorController().get());
+    outtakeList.addDouble("motor speed", () -> outtakeSubsystem.getMotorController().get());
     Command outtake = outtakeCommand(-0.7);
     outtake.setName("outtake");
     outtakeList.add(outtake);

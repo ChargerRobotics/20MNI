@@ -56,6 +56,9 @@ public class RobotContainer {
   private GenericEntry fieldCentricEntry;
   private GenericEntry dPadEntry;
 
+  private GenericEntry climbExtendSpeedEntry;
+  private GenericEntry climbRetractSpeedEntry;
+
   /**
    * Creates a new {@code RobotContainer} with the robot tab of {@code robotTab} and a debug tab of {@code debugTab}
    * @param robotTab The shuffleboard tab to put robot data into
@@ -74,6 +77,11 @@ public class RobotContainer {
     addRobotData(robotTab);
     addDebugData(debugTab);
     shooter.addShuffleboardData(Shuffleboard.getTab("shooter"));
+  }
+
+  public void periodic() {
+    climbSubsystem.setExtendSpeed(climbExtendSpeedEntry.getDouble(0));
+    climbSubsystem.setRetractSpeed(climbRetractSpeedEntry.getDouble(0));
   }
 
   public void reset() {
@@ -196,10 +204,10 @@ public class RobotContainer {
             .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(0.5), armSubsystem));
 
     controller.y()
-            .whileTrue(climbSubsystem.climbCommand(-0.9));
+            .whileTrue(climbSubsystem.retractCommand());
 
     controller.x()
-            .whileTrue(climbSubsystem.climbCommand(0.5));
+            .whileTrue(climbSubsystem.extendCommand());
 
     // controller.b()
     //       .onTrue(new CenterAprilTagCommand(this, centerPidController, 2));
@@ -257,7 +265,8 @@ public class RobotContainer {
             .withSize(2, 1);
 
     tab.add("arm encoder", armSubsystem.getMotorController().getEncoder().getPosition())
-            .withPosition(2, 0);
+            .withPosition(3, 0)
+            .withSize(2, 1);
 
     tab.add("arm pid", armSubsystem.getPidController())
             .withPosition(2, 0);
@@ -267,6 +276,28 @@ public class RobotContainer {
             .withProperties(Map.of("visible time", 2))
             .withPosition(2, 2)
             .withSize(3, 3);
+
+    ShuffleboardLayout climbList = tab.getLayout("Climb", BuiltInLayouts.kList)
+            .withPosition(5, 0)
+            .withSize(2, 5);
+
+    climbList.addDouble("climb motor power", climbSubsystem.getMotorController()::get);
+
+    Command climbExtendCommand = climbSubsystem.extendCommand();
+    climbExtendCommand.setName("extend");
+    climbList.add(climbExtendCommand);
+
+    Command climbRetractCommand = climbSubsystem.retractCommand();
+    climbRetractCommand.setName("retract");
+    climbList.add(climbRetractCommand);
+
+    climbExtendSpeedEntry = climbList.add("extend speed", climbSubsystem.getExtendSpeed())
+            .withWidget(BuiltInWidgets.kNumberSlider)
+            .getEntry();
+
+    climbRetractSpeedEntry = climbList.add("retract speed", climbSubsystem.getRetractSpeed())
+            .withWidget(BuiltInWidgets.kNumberSlider)
+            .getEntry();
   }
 
   /**
