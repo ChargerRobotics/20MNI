@@ -107,13 +107,13 @@ public class ArmSubsystem extends SubsystemBase {
 
     static {
       SPEAKER.pidController.setSetpoint(-6.5);
-      SPEAKER.pidController.setIntegratorRange(-0.5, 0.5);
+      SPEAKER.pidController.setIntegratorRange(-0.2, 0.2);
 
       AMP.pidController.setSetpoint(-12);
-      AMP.pidController.setIntegratorRange(-0.5, 0.5);
+      AMP.pidController.setIntegratorRange(-0.2, 0.2);
 
       INTAKE.pidController.setSetpoint(0);
-      INTAKE.pidController.setIntegratorRange(-0.5, 0.5);
+      INTAKE.pidController.setIntegratorRange(-0.2, 0.2);
     }
 
     private final PIDController pidController;
