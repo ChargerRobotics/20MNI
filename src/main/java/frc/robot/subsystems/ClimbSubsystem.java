@@ -1,14 +1,17 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ClimbSubsystem extends SubsystemBase {
   private final MotorController motorController;
 
-  private double extendSpeed = -0.9;
-  private double retractSpeed = 0.5;
+  private double extendSpeed = -0.5;
+  private double retractSpeed = 0.9;
 
   public ClimbSubsystem(MotorController motorController) {
     this.motorController = motorController;
@@ -44,6 +47,22 @@ public class ClimbSubsystem extends SubsystemBase {
 
   public MotorController getMotorController() {
     return motorController;
+  }
+
+  public void addShuffleboardData(ShuffleboardTab tab) {
+    tab.addDouble("motor power", motorController::get)
+            .withPosition(2, 0)
+            .withSize(2, 1);
+
+    Command climbExtendCommand = extendCommand();
+    climbExtendCommand.setName("extend");
+    tab.add(climbExtendCommand)
+            .withPosition(2, 1);
+
+    Command climbRetractCommand = retractCommand();
+    climbRetractCommand.setName("retract");
+    tab.add(climbRetractCommand)
+            .withPosition(3, 1);
   }
 }
 
