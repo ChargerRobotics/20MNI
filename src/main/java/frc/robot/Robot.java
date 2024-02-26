@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,6 +19,8 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     this.robotContainer = new RobotContainer(Shuffleboard.getTab("robot"), Shuffleboard.getTab("debug"));
     this.autonomousCommand = robotContainer.getAutonomousCommand();
+
+    CameraServer.startAutomaticCapture();
   }
 
   @Override
