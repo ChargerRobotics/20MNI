@@ -131,7 +131,7 @@ public class RobotContainer {
         angleRadians = Math.toRadians(pov);
       }
 
-      double rotatePower = controller.getRightX() * 0.4;
+      double rotatePower = controller.getRightX() * 0.3;
       double heading = Math.toRadians(gyro.getAngle());
 
       if (fieldCentricEntry.getBoolean(true)) {
@@ -182,7 +182,6 @@ public class RobotContainer {
   private ClimbSubsystem createClimbSubsystem() {
     PWMVictorSPX leftMotorController = new PWMVictorSPX(Ports.LEFT_CLIMB_MOTOR_CHANNEL);
     PWMVictorSPX rightMotorController = new PWMVictorSPX(Ports.RIGHT_CLIMB_MOTOR_CHANNEL);
-    rightMotorController.setInverted(true);
 
     leftMotorController.addFollower(rightMotorController);
 
