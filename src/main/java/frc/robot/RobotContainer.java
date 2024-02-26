@@ -56,15 +56,10 @@ public class RobotContainer {
   private GenericEntry fieldCentricEntry;
   private GenericEntry dPadEntry;
 
-  private GenericEntry climbExtendSpeedEntry;
-  private GenericEntry climbRetractSpeedEntry;
-
   /**
    * Creates a new {@code RobotContainer} with the robot tab of {@code robotTab} and a debug tab of {@code debugTab}
-   * @param robotTab The shuffleboard tab to put robot data into
-   * @param debugTab The shuffleboard tab to put debug data into
    */
-  public RobotContainer(ShuffleboardTab robotTab, ShuffleboardTab debugTab) {
+  public RobotContainer() {
     this.driveTrainSubsystem = createDriveTrainSubsystem();
     this.armSubsystem = createArmSubsystem();
     this.shooter = new Shooter(createIntakeSubsystem(), createOuttakeSubsystem());
@@ -74,14 +69,10 @@ public class RobotContainer {
 
     configureBindings();
 
-    addRobotData(robotTab);
-    addDebugData(debugTab);
+    addRobotData(Shuffleboard.getTab("robot"));
     shooter.addShuffleboardData(Shuffleboard.getTab("shooter"));
-  }
-
-  public void periodic() {
-    climbSubsystem.setExtendSpeed(climbExtendSpeedEntry.getDouble(0));
-    climbSubsystem.setRetractSpeed(climbRetractSpeedEntry.getDouble(0));
+    armSubsystem.addShuffleboardData(Shuffleboard.getTab("arm"));
+    climbSubsystem.addShuffleboardData(Shuffleboard.getTab("climb"));
   }
 
   public void reset() {
@@ -151,11 +142,7 @@ public class RobotContainer {
     CANSparkMax leftArmController = new CANSparkMax(Ports.LEFT_ARM_MOTOR_ID, MotorType.kBrushless);
     CANSparkMax rightArmController = new CANSparkMax(Ports.RIGHT_ARM_MOTOR_ID, MotorType.kBrushless);
 
-    PIDController pidController = new PIDController(0.2, 0.05, 0);
-
-    pidController.setIntegratorRange(-0.5, 0.5);
-
-    return new ArmSubsystem(leftArmController, rightArmController, pidController, () -> (controller.getLeftTriggerAxis() - controller.getRightTriggerAxis()) * 0.15);
+    return new ArmSubsystem(leftArmController, rightArmController);
   }
 
   /**
@@ -193,14 +180,17 @@ public class RobotContainer {
             .whileTrue(shooter.intakeCommand(-1))
             .onFalse(shooter.intakeCommand(0.5).withTimeout(0.1));
 
+    controller.leftTrigger()
+            .onTrue(armSubsystem.setSetpointCommand(ArmSubsystem.Setpoint.INTAKE));
+
     controller.rightBumper()
             .onTrue(shooter.outtakeNoteCommand());
 
-    controller.a()
-            .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(-6.5), armSubsystem));
+    controller.rightTrigger()
+            .onTrue(armSubsystem.setSetpointCommand(ArmSubsystem.Setpoint.SPEAKER));
 
     controller.b()
-            .onTrue(Commands.runOnce(() -> armSubsystem.setSetPoint(0.5), armSubsystem));
+            .onTrue(armSubsystem.setSetpointCommand(ArmSubsystem.Setpoint.AMP));
 
     controller.y()
             .whileTrue(climbSubsystem.retractCommand());
@@ -252,51 +242,6 @@ public class RobotContainer {
             .withSize(2, 3);
     gyroList.add("reset", resetGyroCommand);
     gyroList.add("calibrate", calibrateGyroCommand);
-  }
-
-  /**
-   * Adds debug data onto shuffleboard tab {@code tab}
-   * @param tab The shuffleboard tab to add the data to
-   */
-  private void addDebugData(ShuffleboardTab tab) {
-    tab.addDouble("arm motor power", armSubsystem.getMotorController()::get)
-            .withPosition(3, 1)
-            .withSize(2, 1);
-
-    tab.add("arm encoder", armSubsystem.getMotorController().getEncoder().getPosition())
-            .withPosition(3, 0)
-            .withSize(2, 1);
-
-    tab.add("arm pid", armSubsystem.getPidController())
-            .withPosition(2, 0);
-
-    tab.addDoubleArray("arm pid graph", () -> new double[]{armSubsystem.getPidController().getSetpoint(), armSubsystem.getMotorController().getEncoder().getPosition()})
-            .withWidget(BuiltInWidgets.kGraph)
-            .withProperties(Map.of("visible time", 2))
-            .withPosition(2, 2)
-            .withSize(3, 3);
-
-    ShuffleboardLayout climbList = tab.getLayout("Climb", BuiltInLayouts.kList)
-            .withPosition(5, 0)
-            .withSize(2, 5);
-
-    climbList.addDouble("climb motor power", climbSubsystem.getMotorController()::get);
-
-    Command climbExtendCommand = climbSubsystem.extendCommand();
-    climbExtendCommand.setName("extend");
-    climbList.add(climbExtendCommand);
-
-    Command climbRetractCommand = climbSubsystem.retractCommand();
-    climbRetractCommand.setName("retract");
-    climbList.add(climbRetractCommand);
-
-    climbExtendSpeedEntry = climbList.add("extend speed", climbSubsystem.getExtendSpeed())
-            .withWidget(BuiltInWidgets.kNumberSlider)
-            .getEntry();
-
-    climbRetractSpeedEntry = climbList.add("retract speed", climbSubsystem.getRetractSpeed())
-            .withWidget(BuiltInWidgets.kNumberSlider)
-            .getEntry();
   }
 
   /**
