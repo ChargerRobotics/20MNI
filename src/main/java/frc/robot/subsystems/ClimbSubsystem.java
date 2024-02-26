@@ -7,8 +7,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ClimbSubsystem extends SubsystemBase {
   private final MotorController motorController;
 
-  private double extendSpeed = -0.9;
-  private double retractSpeed = 0.5;
+  private double extendSpeed = 0.9;
+  private double retractSpeed = -0.5;
 
   public ClimbSubsystem(MotorController motorController) {
     this.motorController = motorController;
