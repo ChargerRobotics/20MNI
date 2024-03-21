@@ -3,11 +3,20 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Shuffleboard/debug/arm pid": "PIDController",
+      "/Shuffleboard/debug/center pid": "PIDController",
       "/Shuffleboard/debug/gyro": "Gyro",
-      "/Shuffleboard/robot/Speed Type": "String Chooser"
+      "/Shuffleboard/robot/Speed Type": "String Chooser",
+      "/Shuffleboard/shooter/Intake/eject": "Command",
+      "/Shuffleboard/shooter/Intake/intake": "Command",
+      "/Shuffleboard/shooter/Intake/intake note": "Command",
+      "/Shuffleboard/shooter/Outtake/outtake": "Command",
+      "/Shuffleboard/shooter/Outtake/outtake note": "Command"
     }
   },
   "NetworkTables Info": {
+    "Server": {
+      "open": true
+    },
     "visible": true
   }
 }

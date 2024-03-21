@@ -47,4 +47,8 @@ public record OmniSpeeds(double heading, double leftPower, double topPower, doub
 
     return new OmniSpeeds(heading, forwardPower + rotatePower, sidewaysPower + rotatePower, forwardPower - rotatePower, sidewaysPower - rotatePower);
   }
+
+  public static OmniSpeeds zero(double heading) {
+    return new OmniSpeeds(heading, 0, 0, 0, 0);
+  }
 }

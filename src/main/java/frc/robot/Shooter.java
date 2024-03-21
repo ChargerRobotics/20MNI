@@ -23,7 +23,7 @@ public class Shooter {
 
   public Command outtakeNoteCommand() {
     return Commands.deadline(
-      Commands.waitSeconds(1).andThen(intakeCommand(-1).withTimeout(0.2)),
+      Commands.waitSeconds(1).andThen(intakeCommand(1).withTimeout(0.2)),
       outtakeCommand(-0.7)
     );
   }
@@ -50,10 +50,10 @@ public class Shooter {
           .withPosition(2, 0);
 
     intakeList.addDouble("motor speed", () -> intakeSubsystem.getMotorController().get());
-    Command intake = intakeCommand(-1);
+    Command intake = intakeCommand(1);
     intake.setName("intake");
     intakeList.add(intake);
-    Command eject = intakeCommand(1);
+    Command eject = intakeCommand(-1);
     eject.setName("eject");
     intakeList.add(eject);
 

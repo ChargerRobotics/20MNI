@@ -23,6 +23,7 @@ import frc.robot.drivetrain.DriveSpeedControlCurve;
 import frc.robot.drivetrain.OmniDriveTrain;
 import frc.robot.drivetrain.OmniSpeeds;
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.ArmSubsystem.Setpoint;
 
 import java.util.Map;
 
@@ -52,6 +53,14 @@ public class RobotContainer {
     speedTypeChooser.onChange(driveSpeedCurve::setSpeedType);
   }
 
+  private final SendableChooser<AutonomousMode> autonomousChooser = new SendableChooser<>();
+  {
+    autonomousChooser.setDefaultOption(AutonomousMode.MIDDLE_SPEAKER.toString(), AutonomousMode.MIDDLE_SPEAKER);
+    for (AutonomousMode mode : AutonomousMode.values()) {
+      if (mode == AutonomousMode.MIDDLE_SPEAKER) continue;
+      autonomousChooser.addOption(mode.toString(), mode);
+    }
+  }
   private GenericEntry maxSpeedEntry;
   private GenericEntry fieldCentricEntry;
   private GenericEntry dPadEntry;
@@ -81,7 +90,31 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return Commands.print("No autonomous command configured");
+    AutonomousMode selected = autonomousChooser.getSelected();
+    Command shootCommand = Commands.sequence(
+      armSubsystem.unstuckCommand(),
+      Commands.waitUntil(() -> armSubsystem.getSetpoint().getPidController().atSetpoint()),
+      armSubsystem.setSetpointCommand(Setpoint.DOWN_SPEAKER),
+      Commands.waitUntil(() -> armSubsystem.getSetpoint().getPidController().atSetpoint()),
+      armSubsystem.setSetpointCommand(Setpoint.SPEAKER),
+      Commands.waitSeconds(0.5),
+      shooter.outtakeNoteCommand()
+    );
+
+    // Optional<Alliance> alliance = DriverStation.getAlliance();
+    // if (alliance.isEmpty()) throw new IllegalStateException("invalid alliance");
+
+    return switch (selected) {
+      case MIDDLE_SPEAKER -> shootCommand.andThen(driveTrainSubsystem.driveSecondsCommand(OmniSpeeds.from(0.5, 180, 0, gyro.getAngle()), gyro::getAngle, 1));
+
+      case LEFT_SPEAKER, RIGHT_SPEAKER -> shootCommand;
+
+      case AMP -> Commands.print("no amp");
+
+      case MOVE_FOWARD -> driveTrainSubsystem.driveSecondsCommand(OmniSpeeds.from(0.5, 0, 0, gyro.getAngle()), gyro::getAngle, 3);
+
+      case NONE -> Commands.none();
+    };
   }
 
   public DriveTrainSubsystem getDriveTrainSubsystem() {
@@ -142,7 +175,7 @@ public class RobotContainer {
     CANSparkMax leftArmController = new CANSparkMax(Ports.LEFT_ARM_MOTOR_ID, MotorType.kBrushless);
     CANSparkMax rightArmController = new CANSparkMax(Ports.RIGHT_ARM_MOTOR_ID, MotorType.kBrushless);
 
-    return new ArmSubsystem(leftArmController, rightArmController);
+    return new ArmSubsystem(leftArmController, rightArmController, () -> controller.getLeftTriggerAxis() - controller.getRightTriggerAxis());
   }
 
   /**
@@ -163,22 +196,20 @@ public class RobotContainer {
    * @return The newly created {@link IntakeSubsystem}
    */
   private IntakeSubsystem createIntakeSubsystem() {
-    return new IntakeSubsystem(new PWMVictorSPX(Ports.INTAKE_MOTOR_CHANNEL));
+    return new IntakeSubsystem(new PWMSparkMax(Ports.INTAKE_MOTOR_CHANNEL));
   }
 
   private ClimbSubsystem createClimbSubsystem() {
-    PWMVictorSPX leftMotorController = new PWMVictorSPX(Ports.LEFT_CLIMB_MOTOR_CHANNEL);
     PWMVictorSPX rightMotorController = new PWMVictorSPX(Ports.RIGHT_CLIMB_MOTOR_CHANNEL);
+    PWMVictorSPX leftMotorController = new PWMVictorSPX(Ports.LEFT_CLIMB_MOTOR_CHANNEL);
 
-    leftMotorController.addFollower(rightMotorController);
-
-    return new ClimbSubsystem(leftMotorController);
+    return new ClimbSubsystem(rightMotorController, leftMotorController);
   }
 
   private void configureBindings() {
     controller.leftBumper()
-            .whileTrue(shooter.intakeCommand(-1))
-            .onFalse(shooter.intakeCommand(0.5).withTimeout(0.1));
+            .whileTrue(shooter.intakeCommand(0.9))
+            .onFalse(shooter.intakeCommand(-0.5).withTimeout(0.1));
 
     controller.leftTrigger()
             .onTrue(armSubsystem.setSetpointCommand(ArmSubsystem.Setpoint.INTAKE));
@@ -213,6 +244,10 @@ public class RobotContainer {
 
     tab.add("Speed Type", speedTypeChooser)
             .withPosition(2, 0)
+            .withSize(2, 1);
+
+    tab.add("auto mode", autonomousChooser)
+            .withPosition(6, 0)
             .withSize(2, 1);
 
     maxSpeedEntry = tab.add("Max Speed", DriveSpeedControlCurve.DEFAULT_MAX_SPEED)
@@ -264,5 +299,15 @@ public class RobotContainer {
     if (y < 0) return angle + Math.PI;
     if (x < 0) return angle + Math.PI * 2;
     return angle;
+  }
+
+  public enum AutonomousMode {
+    LEFT_SPEAKER,
+    RIGHT_SPEAKER,
+    MIDDLE_SPEAKER,
+    AMP,
+    NONE,
+    MOVE_FOWARD,
+    ;
   }
 }

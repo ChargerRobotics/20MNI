@@ -8,7 +8,7 @@ import com.datasiqn.robotutils.controlcurve.ControlCurves;
  */
 public class DriveSpeedControlCurve {
   public static final SpeedType DEFAULT_SPEED_TYPE = SpeedType.CUBIC;
-  public static final double DEFAULT_MAX_SPEED = 0.5;
+  public static final double DEFAULT_MAX_SPEED = 0.7;
 
   private final double deadZone;
   private final double minPower;

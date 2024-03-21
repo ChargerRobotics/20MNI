@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.drivetrain.OmniDriveTrain;
 import frc.robot.drivetrain.OmniSpeeds;
 
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -35,6 +37,13 @@ public class DriveTrainSubsystem extends SubsystemBase {
    */
   public void drive(OmniSpeeds speeds) {
     driveTrain.drive(speeds);
+  }
+
+  public Command driveSecondsCommand(OmniSpeeds speeds, DoubleSupplier headingSupplier, double seconds) {
+    return startEnd(
+      () -> drive(speeds),
+      () -> drive(OmniSpeeds.zero(headingSupplier.getAsDouble()))
+    ).withTimeout(seconds);
   }
 
   public OmniDriveTrain getDriveTrain() {
